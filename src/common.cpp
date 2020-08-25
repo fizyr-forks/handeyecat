@@ -15,58 +15,60 @@
 
 namespace lanXin {
 
-constexpr double epsilon = 1e-6;
+namespace {
+	constexpr double epsilon = 1e-6;
 
-Eigen::Matrix3f skew(Eigen::Vector3f v) {
-	Eigen::Matrix3f rot = Eigen::Matrix3f::Zero();
+	Eigen::Vector3f rodrigues2(Eigen::Matrix3f const & matrix) {
+		Eigen::JacobiSVD<Eigen::Matrix3f> svd(matrix, Eigen::ComputeFullV | Eigen::ComputeFullU);
+		Eigen::Matrix3f R = svd.matrixU() * svd.matrixV().transpose();
 
-	rot(0, 1) = -v(2);
-	rot(0, 2) = v(1);
-	rot(1, 2) = -v(0);
+		double rx = R(2, 1) - R(1, 2);
+		double ry = R(0, 2) - R(2, 0);
+		double rz = R(1, 0) - R(0, 1);
 
-	rot(1, 0) = -rot(0, 1);
-	rot(2, 0) = -rot(0, 2);
-	rot(2, 1) = -rot(1, 2);
+		double s = sqrt((rx*rx + ry*ry + rz*rz)*0.25);
+		double c = (R.trace() - 1) * 0.5;
+		c = std::max(-1.0, std::min(1.0, c));
 
-	return rot;
-}
+		double theta = acos(c);
 
-Eigen::Vector3f rodrigues2(const Eigen::Matrix3f& matrix) {
-	Eigen::JacobiSVD<Eigen::Matrix3f> svd(matrix, Eigen::ComputeFullV | Eigen::ComputeFullU);
-	Eigen::Matrix3f R = svd.matrixU() * svd.matrixV().transpose();
+		if (s < epsilon) {
+			if (c > 0) {
+				rx = ry = rz = 0;
+			} else {
+				rx = sqrt(std::max((R(0, 0) + 1) * 0.5, 0.0));
+				ry = sqrt(std::max((R(1, 1) + 1) * 0.5, 0.0)) * (R(0, 1) < 0 ? -1.0 : 1.0);
+				rz = sqrt(std::max((R(2, 2) + 1) * 0.5, 0.0)) * (R(0, 2) < 0 ? -1.0 : 1.0);
 
-	double rx = R(2, 1) - R(1, 2);
-	double ry = R(0, 2) - R(2, 0);
-	double rz = R(1, 0) - R(0, 1);
-
-	double s = sqrt((rx*rx + ry*ry + rz*rz)*0.25);
-	double c = (R.trace() - 1) * 0.5;
-	c = std::max(-1.0, std::min(1.0, c));
-
-	double theta = acos(c);
-
-	if (s < epsilon) {
-		if (c > 0) {
-			rx = ry = rz = 0;
-		} else {
-			rx = sqrt(std::max((R(0, 0) + 1) * 0.5, 0.0));
-			ry = sqrt(std::max((R(1, 1) + 1) * 0.5, 0.0)) * (R(0, 1) < 0 ? -1.0 : 1.0);
-			rz = sqrt(std::max((R(2, 2) + 1) * 0.5, 0.0)) * (R(0, 2) < 0 ? -1.0 : 1.0);
-
-			if (fabs(rx) < fabs(ry) && fabs(rx) < fabs(rz) && (R(1, 2) > 0) != (ry*rz > 0)) {
-				rz = -rz;
+				if (fabs(rx) < fabs(ry) && fabs(rx) < fabs(rz) && (R(1, 2) > 0) != (ry*rz > 0)) {
+					rz = -rz;
+				}
+				theta /= sqrt(rx*rx + ry*ry + rz*rz);
+				rx *= theta;
+				ry *= theta;
+				rz *= theta;
 			}
-			theta /= sqrt(rx*rx + ry*ry + rz*rz);
-			rx *= theta;
-			ry *= theta;
-			rz *= theta;
+		} else {
+			double vth = 1 / (2 * s);
+			vth *= theta;
+			rx *= vth; ry *= vth; rz *= vth;
 		}
-	} else {
-		double vth = 1 / (2 * s);
-		vth *= theta;
-		rx *= vth; ry *= vth; rz *= vth;
+		return Eigen::Vector3f(rx, ry, rz);
 	}
-	return Eigen::Vector3f(rx, ry, rz);
+
+	Eigen::Matrix3f skew(Eigen::Vector3f v) {
+		Eigen::Matrix3f rot = Eigen::Matrix3f::Zero();
+
+		rot(0, 1) = -v(2);
+		rot(0, 2) = v(1);
+		rot(1, 2) = -v(0);
+
+		rot(1, 0) = -rot(0, 1);
+		rot(2, 0) = -rot(0, 2);
+		rot(2, 1) = -rot(1, 2);
+
+		return rot;
+	}
 }
 
 Eigen::Isometry3f calibrateHandEye(

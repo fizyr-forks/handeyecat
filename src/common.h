@@ -15,9 +15,6 @@
 
 namespace lanXin {
 
-// Rodrigues transformation
-Eigen::Vector3f rodrigues2(Eigen::Matrix3f const & matrix);
-
 
 // Solve AX = XB Problem
 // cv::Mat calibrateHandEye(std::vector<cv::Mat> Hgij, std::vector<cv::Mat> Hcij);
