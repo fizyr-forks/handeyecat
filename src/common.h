@@ -15,16 +15,10 @@
 
 namespace lanXin {
 
-// hand eye calibration
-// ---------------------------------------------
-
-#define XEPS					1e-6
-
 template<typename T>
 bool non_zero(const T& val) {
 	return std::abs(val) > 1e-6;
 }
-
 
 // Rodrigues transformation
 Eigen::Vector3f rodrigues2(const Eigen::Matrix3f& matrix);

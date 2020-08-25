@@ -16,9 +16,10 @@
 
 namespace lanXin {
 
+constexpr double epsilon = 1e-6;
+
 Eigen::Matrix3f skew(Eigen::Vector3f v) {
-	Eigen::Matrix3f rot;
-	rot.setZero();
+	Eigen::Matrix3f rot = Eigen::Matrix3f::Zero();
 
 	rot(0, 1) = -v(2);
 	rot(0, 2) = v(1);
@@ -41,22 +42,17 @@ Eigen::Vector3f rodrigues2(const Eigen::Matrix3f& matrix) {
 
 	double s = sqrt((rx*rx + ry*ry + rz*rz)*0.25);
 	double c = (R.trace() - 1) * 0.5;
-	c = c > 1. ? 1. : c < -1. ? -1. : c;
+	c = std::max(-1.0, std::min(1.0, c));
 
 	double theta = acos(c);
 
-	if (s < XEPS) {
-		double t;
-
+	if (s < epsilon) {
 		if (c > 0) {
 			rx = ry = rz = 0;
 		} else {
-			t = (R(0, 0) + 1)*0.5;
-			rx = sqrt(std::max(t, 0.0));
-			t = (R(1, 1) + 1)*0.5;
-			ry = sqrt(std::max(t, 0.0)) * (R(0, 1) < 0 ? -1.0 : 1.0);
-			t = (R(2, 2) + 1)*0.5;
-			rz = sqrt(std::max(t, 0.0)) * (R(0, 2) < 0 ? -1.0 : 1.0);
+			rx = sqrt(std::max((R(0, 0) + 1) * 0.5, 0.0));
+			ry = sqrt(std::max((R(1, 1) + 1) * 0.5, 0.0)) * (R(0, 1) < 0 ? -1.0 : 1.0);
+			rz = sqrt(std::max((R(2, 2) + 1) * 0.5, 0.0)) * (R(0, 2) < 0 ? -1.0 : 1.0);
 
 			if (fabs(rx) < fabs(ry) && fabs(rx) < fabs(rz) && (R(1, 2) > 0) != (ry*rz > 0)) {
 				rz = -rz;
@@ -79,7 +75,6 @@ Eigen::Isometry3f calibrateHandEye(
 	std::vector<Eigen::Isometry3f> & vH_mark,
 	HandEyeType t
 ) {
-	//Eigen::Matrix4f rt;
 	const int n = std::min(vH_robot.size(), vH_mark.size());
 	if(n <3) {
 		printf("At lease 3 point-pairs.\n");
@@ -150,17 +145,12 @@ Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector
 
 	const int n = vA.size();
 
-	Eigen::Matrix3f R_a, R_b;
-	Eigen::Vector3f r_a, r_b;
-
-	Eigen::MatrixXf A(n*3, 3);
-	Eigen::MatrixXf b(n*3, 1);
-	A.setZero();
-	b.setZero();
+	Eigen::MatrixXf A = Eigen::MatrixXf::Zero(n*3, 3);
+	Eigen::MatrixXf b = Eigen::MatrixXf::Zero(n*3, 1);
 
 	for (int i = 0; i < n; ++i) {
-		R_a = vA[i].linear();
-		R_b = vB[i].linear();
+		Eigen::Matrix3f R_a = vA[i].linear();
+		Eigen::Matrix3f R_b = vB[i].linear();
 
 		Eigen::Vector3f rod_a = rodrigues2(R_a);
 		Eigen::Vector3f rod_b = rodrigues2(R_b);
