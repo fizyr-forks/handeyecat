@@ -10,10 +10,9 @@
 #include "common.h"
 
 #include <Eigen/SVD>
+
 #include <iostream>
 #include <fstream>
-
-using namespace std;
 
 namespace lanXin {
 
@@ -128,7 +127,7 @@ Eigen::MatrixXf svdInverse(Eigen::MatrixXf  A)
 	float  pinvtoler = 1.e-6; //tolerance
 	int row = A.rows();
 	int col = A.cols();
-	int k = min(row, col);
+	int k = std::min(row, col);
 	Eigen::MatrixXf X = Eigen::MatrixXf::Zero(col, row);
 	Eigen::MatrixXf singularValues_inv = svd.singularValues();//奇异值
 	Eigen::MatrixXf singularValues_inv_mat = Eigen::MatrixXf::Zero(col, row);
@@ -254,10 +253,10 @@ Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector
 	std::string fname("H.txt");
 	printf("Calibration Finished. Saved at %s.\n", fname.c_str());
 
-	cout << "H: \n" << H.matrix() << endl;
-	ofstream out(fname);
-	out <<"# Calibrated At " << fname  << endl;
-	out << H.matrix() << endl;
+	std::cout << "H: \n" << H.matrix() << "\n";
+	std::ofstream out(fname);
+	out <<"# Calibrated At " << fname  << "\n";
+	out << H.matrix() << "\n";
 	out.close();
 
 	return H;

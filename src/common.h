@@ -36,7 +36,7 @@ inline Eigen::Matrix3f fromEulers(float rx, float ry = .0f, float rz = .0f)
 	Eigen::AngleAxisf quat = Eigen::AngleAxisf(rx, Eigen::Vector3f::UnitX());
 	if (non_zero(ry))
 	{
-		quat =  Eigen::AngleAxisf(ry, Eigen::Vector3f::UnitY()) * quat;
+		quat = Eigen::AngleAxisf(ry, Eigen::Vector3f::UnitY()) * quat;
 	}
 	if(non_zero(rz))
 		quat = Eigen::AngleAxisf(rz, Eigen::Vector3f::UnitZ()) * quat;
