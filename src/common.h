@@ -28,14 +28,14 @@ enum HandEyeType {
 //@ vH_robot: robot pose (read from the robot)
 //@ vH_mark: mark pose in camera (computed from the camera)
 Eigen::Isometry3f calibrateHandEye(
-	std::vector<Eigen::Isometry3f> & vH_robot,
-	std::vector<Eigen::Isometry3f> & vH_mark,
+	std::vector<Eigen::Isometry3f> const & vH_robot,
+	std::vector<Eigen::Isometry3f> const & vH_mark,
 	HandEyeType t = EyeToHand
 );
 
 Eigen::Isometry3f sovleAXequalXB(
-	std::vector<Eigen::Isometry3f> & vA,
-	std::vector<Eigen::Isometry3f> & vB
+	std::vector<Eigen::Isometry3f> const & vA,
+	std::vector<Eigen::Isometry3f> const & vB
 );
 
 }

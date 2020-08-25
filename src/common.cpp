@@ -72,8 +72,8 @@ namespace {
 }
 
 Eigen::Isometry3f calibrateHandEye(
-	std::vector<Eigen::Isometry3f> & vH_robot,
-	std::vector<Eigen::Isometry3f> & vH_mark,
+	std::vector<Eigen::Isometry3f> const & vH_robot,
+	std::vector<Eigen::Isometry3f> const & vH_mark,
 	HandEyeType t
 ) {
 	const int n = std::min(vH_robot.size(), vH_mark.size());
@@ -111,7 +111,7 @@ Eigen::Isometry3f calibrateHandEye(
 	return sovleAXequalXB(vA, vB);
 }
 
-Eigen::MatrixXf svdInverse(Eigen::MatrixXf  A) {
+Eigen::MatrixXf svdInverse(Eigen::MatrixXf const & A) {
 	Eigen::JacobiSVD<Eigen::MatrixXf> svd(A, Eigen::ComputeFullU | Eigen::ComputeFullV); // M = USV*
 	float pinvtoler = 1.e-6; //tolerance
 	int row = A.rows();
@@ -135,7 +135,10 @@ Eigen::MatrixXf svdInverse(Eigen::MatrixXf  A) {
 	return svd.matrixV() * singularValues_inv_mat * svd.matrixU().transpose(); //X=VS+U*
 }
 
-Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector<Eigen::Isometry3f>& vB) {
+Eigen::Isometry3f sovleAXequalXB(
+	std::vector<Eigen::Isometry3f> const & vA,
+	std::vector<Eigen::Isometry3f> const & vB
+) {
 	if (vA.size() != vB.size()) {
 		throw std::runtime_error("sovleAXequalXB requires input vectors to have the same size, got " + std::to_string(vA.size()) + " and " + std::to_string(vB.size()));
 	}
