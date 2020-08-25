@@ -31,21 +31,18 @@ int main() {
 	vH_e_in_w.push_back(lanXin::getTransM(Eigen::Vector3f(0.85, -0.2, 0.32), Eigen::Vector3f(-0.19, 0.2, 0)));
 
 	int n = vH_e_in_w.size();
-	for(int i=0; i<n; ++i)
-	{
+	for (int i = 0; i < n; ++i) {
 		vH_g_in_w.push_back(vH_e_in_w[i] * H_g_in_e);
 	}
 
 	// grid in camera = H_c_in_w^(-1) * H_g_in_w;
 	std::vector<Eigen::Isometry3f> vH_g_in_c;
-	for (auto it = vH_g_in_w.begin(); it!= vH_g_in_w.end(); ++it)
-	{
+	for (auto it = vH_g_in_w.begin(); it!= vH_g_in_w.end(); ++it) {
 		vH_g_in_c.push_back(H_c_in_w.inverse() * (*it));
 	}
 
 	// add random noise to the input data
-	for(int i=0; i<n; ++i)
-	{
+	for (int i = 0; i < n; ++i) {
 		// cout << rng.uniform(-0.01, 0.01) << endl;
 
 		// Eigen::Vector3f v = Eigen::Vector3f(rng.uniform(-0.01, 0.01), rng.uniform(-0.01, 0.01), rng.uniform(-0.01, 0.01));
@@ -62,8 +59,7 @@ int main() {
 
 
 	// compare
-	for (std::size_t i = 0; i < vH_g_in_c.size(); ++i)
-	{
+	for (std::size_t i = 0; i < vH_g_in_c.size(); ++i) {
 		Eigen::Isometry3f result = H_c_in_w * vH_g_in_c[i];
 		Eigen::Isometry3f g_in_w = vH_g_in_w[i];
 		std::cout << "Compare: --- At " << i << "\n" << result.matrix() - g_in_w.matrix() << "\n";
