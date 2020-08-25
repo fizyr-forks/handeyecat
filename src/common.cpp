@@ -250,12 +250,11 @@ GeoTransform sovleAXequalXB(std::vector<GeoTransform>& vA, std::vector<GeoTransf
 	// check
 	for(int i = 0; i<n; ++i)
 	{
-		GeoTransform AX = vA[i] * H;
-		GeoTransform XB = H * vB[i];
+		// GeoTransform AX = vA[i] * H;
+		// GeoTransform XB = H * vB[i];
 
-
-		Geo3d angles1 = AX.linear().eulerAngles(0, 1, 2);
-		Geo3d angles2 = XB.linear().eulerAngles(0, 1, 2);
+		// Geo3d angles1 = AX.linear().eulerAngles(0, 1, 2);
+		// Geo3d angles2 = XB.linear().eulerAngles(0, 1, 2);
 		// cout << i << " Dist Error: " << (AX.translation() - XB.translation()).norm()
 		// 	<< ". Rotation Error: " << (angles1 - angles2).transpose() << endl;
 	}

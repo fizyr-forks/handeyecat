@@ -15,9 +15,7 @@ using namespace std;
 
 
 
-int main(int argc, char *argv[])
-{	
-
+int main() {
 	Geo3d O_world(0, 0, 0);
 
 	// camera in world, unknown, to calibrate
@@ -68,15 +66,16 @@ int main(int argc, char *argv[])
 
 
 	// compare
-	for (int i = 0; i < vH_g_in_c.size(); ++i)
+	for (std::size_t i = 0; i < vH_g_in_c.size(); ++i)
 	{
 		GeoTransform result = H_c_in_w * vH_g_in_c[i];
 		GeoTransform g_in_w = vH_g_in_w[i];
-		// cout << "Compare: --- At " << i << endl << result.matrix() - g_in_w.matrix() << endl;
+		cout << "Compare: --- At " << i << endl << result.matrix() - g_in_w.matrix() << endl;
 	}
 
 	// compose A and B
 	GeoTransform H = calibrateHandEye(vH_e_in_w, vH_g_in_c);
+	std::cout << "H:\n" << H.matrix() << "\n";
 
 	return 0;
 }

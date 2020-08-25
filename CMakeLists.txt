@@ -9,9 +9,7 @@ IF(MSVC)
 	set(WXN PRIVATE /W0 /WX)
 
 ELSEIF(UNIX)
-	set(WXN PRIVATE -W -Wall -Wno-unused 
-			-Wno-strict-aliasing -Wno-format-overflow  -Wno-int-in-bool-context 
-			-Wno-sign-compare -Wno-reorder -Wextra -Wno-variadic-macros -Wno-format) 
+	set(WXN PRIVATE -Wall -Wextra -Wpedantic)
 ENDIF()
 
 # Eigen Related
@@ -20,9 +18,9 @@ if(WIN32)
 	include_directories(${EIGEN3_INCLUDE_DIRS})
 	include_directories(${EIGEN3_INCLUDE_DIRS}/Eigen)
 else(WIN32)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++14")
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++14")
 	find_package(Eigen3 REQUIRED)
-	include_directories(${EIGEN3_INCLUDE_DIRS})
+	include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 endif(WIN32)
 
 
