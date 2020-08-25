@@ -14,24 +14,53 @@
 
 #include <iostream>
 
+namespace {
+	template<typename T>
+	bool non_zero(const T& val) {
+		return std::abs(val) > 1e-6;
+	}
+
+	inline Eigen::Matrix3f fromEulers(float rx, float ry = .0f, float rz = .0f) {
+		Eigen::AngleAxisf quat = Eigen::AngleAxisf(rx, Eigen::Vector3f::UnitX());
+
+		if (non_zero(ry)) {
+			quat = Eigen::AngleAxisf(ry, Eigen::Vector3f::UnitY()) * quat;
+		}
+
+		if (non_zero(rz)) {
+			quat = Eigen::AngleAxisf(rz, Eigen::Vector3f::UnitZ()) * quat;
+		}
+
+		return quat.matrix();
+	}
+
+	inline Eigen::Isometry3f getTransM(Eigen::Vector3f t, Eigen::Vector3f eulers) {
+		Eigen::Isometry3f H;
+		H.setIdentity();
+		H.linear() = fromEulers(eulers[0], eulers[1], eulers[2]);
+		H.translation() = t;
+		return H;
+	}
+}
+
 int main() {
 	Eigen::Vector3f O_world(0, 0, 0);
 
 	// camera in world, unknown, to calibrate
 	// transform camera to world, to estimate
-	Eigen::Isometry3f H_c_in_w = lanXin::getTransM(Eigen::Vector3f(0.8, 0.12, 2.4), Eigen::Vector3f(M_PI * 1.02, -0.12 * M_PI, M_PI * 0.51));
+	Eigen::Isometry3f H_c_in_w = getTransM(Eigen::Vector3f(0.8, 0.12, 2.4), Eigen::Vector3f(M_PI * 1.02, -0.12 * M_PI, M_PI * 0.51));
 
 	std::cout << "camera in world:\n" << H_c_in_w.matrix() << "\n";
 
 	// grid in end, unkonwn, but we don't not have to solve it
-	Eigen::Isometry3f H_g_in_e = lanXin::getTransM(Eigen::Vector3f(0.10, 0.20, -0.401), Eigen::Vector3f(0.20, -0.20, 0.20));
+	Eigen::Isometry3f H_g_in_e = getTransM(Eigen::Vector3f(0.10, 0.20, -0.401), Eigen::Vector3f(0.20, -0.20, 0.20));
 
 	// Grid in world pose list
 	std::vector<Eigen::Isometry3f> vH_e_in_w, vH_g_in_w;
-	vH_e_in_w.push_back(lanXin::getTransM(Eigen::Vector3f(0.56, 0.4, 0.3), Eigen::Vector3f(0.2, 0.2, 0)));
-	vH_e_in_w.push_back(lanXin::getTransM(Eigen::Vector3f(0.6, -0.14, 0.3), Eigen::Vector3f(-0.3, -0.17, 0)));
-	vH_e_in_w.push_back(lanXin::getTransM(Eigen::Vector3f(0.98, 0.4, 0.40), Eigen::Vector3f(0.2, 0.15, 0.1)));
-	vH_e_in_w.push_back(lanXin::getTransM(Eigen::Vector3f(0.85, -0.2, 0.32), Eigen::Vector3f(-0.19, 0.2, 0)));
+	vH_e_in_w.push_back(getTransM(Eigen::Vector3f(0.56, 0.4, 0.3), Eigen::Vector3f(0.2, 0.2, 0)));
+	vH_e_in_w.push_back(getTransM(Eigen::Vector3f(0.6, -0.14, 0.3), Eigen::Vector3f(-0.3, -0.17, 0)));
+	vH_e_in_w.push_back(getTransM(Eigen::Vector3f(0.98, 0.4, 0.40), Eigen::Vector3f(0.2, 0.15, 0.1)));
+	vH_e_in_w.push_back(getTransM(Eigen::Vector3f(0.85, -0.2, 0.32), Eigen::Vector3f(-0.19, 0.2, 0)));
 
 	int n = vH_e_in_w.size();
 	for (int i = 0; i < n; ++i) {
