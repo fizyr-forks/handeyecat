@@ -7,7 +7,7 @@
 *
 ***************************************/
 
-#include "common.h"
+#include "./handeyecat.hpp"
 
 #include <Eigen/SVD>
 
