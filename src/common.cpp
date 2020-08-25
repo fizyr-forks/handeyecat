@@ -83,7 +83,7 @@ Eigen::Vector3f rodrigues2(const Eigen::Matrix3f& matrix)
 Eigen::Isometry3f calibrateHandEye(std::vector<Eigen::Isometry3f>& vH_robot, std::vector<Eigen::Isometry3f>& vH_mark, HandEyeType t)
 {
 	//Eigen::Matrix4f rt;
-	const int n = lxmin(vH_robot.size(), vH_mark.size());
+	const int n = std::min(vH_robot.size(), vH_mark.size());
 	if(n <3)
 	{
 		printf("At lease 3 point-pairs.\n");
@@ -208,13 +208,13 @@ Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector
 	// 3 by 1 = 3 by 3*n multi 3*n by 1
 	Eigen::Vector3f H_ba_prime = pinA * b;
 
-	Eigen::Vector3f H_ba = 2 * H_ba_prime / sqrt(1 + lxsq(H_ba_prime.norm()));
+	Eigen::Vector3f H_ba = 2 * H_ba_prime / sqrt(1 + std::pow(H_ba_prime.norm(), 2));
 
 	// 1 by 3
 	Eigen::MatrixXf H_ba_Trs = H_ba.transpose();
 
-	Eigen::Matrix3f R_ba = (1 - lxsq(H_ba.norm()) / 2) * Eigen::Matrix3f::Identity()
-		+ 0.5 * (H_ba * H_ba_Trs + sqrt(4 - lxsq(H_ba.norm()))*skew(H_ba));
+	Eigen::Matrix3f R_ba = (1 - std::pow(H_ba.norm(), 2) / 2) * Eigen::Matrix3f::Identity()
+		+ 0.5 * (H_ba * H_ba_Trs + sqrt(4 - std::pow(H_ba.norm(), 2))*skew(H_ba));
 
 	A.setZero();
 	b.setZero();

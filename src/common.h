@@ -7,12 +7,11 @@
 *
 ***************************************/
 
-#define _USE_MATH_DEFINES
-#include <math.h>
-
 #include <Eigen/Core>
 #include <Eigen/Dense>
+
 #include <vector>
+#include <cmath>
 
 namespace lanXin {
 
@@ -22,33 +21,9 @@ namespace lanXin {
 #define XEPS					1e-6
 
 template<typename T>
-inline T lxmin(const T& a, const T& b)
+bool non_zero(const T& val)
 {
-	return a < b ? a : b;
-}
-
-template<typename T>
-inline T lxmax(const T& a, const T& b)
-{
-	return a > b ? a : b;
-}
-
-template<typename T>
-inline T lxsq(const T& val)
-{
-	return val*val;
-}
-
-template<typename T>
-inline T lxabs(const T& val)
-{
-	return std::abs(val);
-}
-
-template<typename T>
-inline T non_zero(const T& val)
-{
-	return lxabs(val) > 1e-6;
+	return std::abs(val) > 1e-6;
 }
 
 
