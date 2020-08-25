@@ -13,7 +13,7 @@
 
 #include <stdexcept>
 
-namespace lanXin {
+namespace handeyecat {
 
 namespace {
 	constexpr double epsilon = 1e-6;

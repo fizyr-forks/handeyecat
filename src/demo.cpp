@@ -89,7 +89,6 @@ int main() {
 		// vH_g_in_c[i].linear() = vH_g_in_c[i].linear() * fromEulers(v[0], v[1], v[2]);
 	}
 
-
 	// compare
 	for (std::size_t i = 0; i < vH_g_in_c.size(); ++i) {
 		Eigen::Isometry3f result = H_c_in_w * vH_g_in_c[i];
@@ -98,7 +97,7 @@ int main() {
 	}
 
 	// compose A and B
-	Eigen::Isometry3f H = lanXin::calibrateHandEye(vH_e_in_w, vH_g_in_c);
+	Eigen::Isometry3f H = handeyecat::calibrateHandEye(vH_e_in_w, vH_g_in_c);
 	std::cout << "H:\n" << H.matrix() << "\n";
 
 	return 0;

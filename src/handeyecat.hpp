@@ -13,11 +13,7 @@
 #include <vector>
 #include <cmath>
 
-namespace lanXin {
-
-
-// Solve AX = XB Problem
-// cv::Mat calibrateHandEye(std::vector<cv::Mat> Hgij, std::vector<cv::Mat> Hcij);
+namespace handeyecat {
 
 enum HandEyeType {
 	EyeToHand,
