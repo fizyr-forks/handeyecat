@@ -18,9 +18,9 @@ using namespace std;
 namespace lanXin {
 
 
-RotMat skew(Geo3d v) 
+Eigen::Matrix3f skew(Eigen::Vector3f v) 
 {
-	RotMat rot;
+	Eigen::Matrix3f rot;
 	rot.setZero();
 
 	rot(0, 1) = -v(2);
@@ -34,10 +34,10 @@ RotMat skew(Geo3d v)
 	return rot;
 }
 
-Geo3d rodrigues2(const RotMat& matrix)
+Eigen::Vector3f rodrigues2(const Eigen::Matrix3f& matrix)
 {
 	Eigen::JacobiSVD<Eigen::Matrix3f> svd(matrix, Eigen::ComputeFullV | Eigen::ComputeFullU);
-	RotMat R = svd.matrixU() * svd.matrixV().transpose();
+	Eigen::Matrix3f R = svd.matrixU() * svd.matrixV().transpose();
 
 	double rx = R(2, 1) - R(1, 2);
 	double ry = R(0, 2) - R(2, 0);
@@ -81,19 +81,19 @@ Geo3d rodrigues2(const RotMat& matrix)
 	return Eigen::Vector3d(rx, ry, rz).cast<float>();
 }
 
-GeoTransform calibrateHandEye(std::vector<GeoTransform>& vH_robot, std::vector<GeoTransform>& vH_mark, HandEyeType t)
+Eigen::Isometry3f calibrateHandEye(std::vector<Eigen::Isometry3f>& vH_robot, std::vector<Eigen::Isometry3f>& vH_mark, HandEyeType t)
 {
 	//Eigen::Matrix4f rt;
 	const int n = lxmin(vH_robot.size(), vH_mark.size());
 	if(n <3)
 	{
 		printf("At lease 3 point-pairs.\n");
-		return GeoTransform();
+		return Eigen::Isometry3f();
 	}
 
 	printf("Start to calibrate with %d point-pairs.\n", n);
   
-	std::vector<GeoTransform> vA, vB;
+	std::vector<Eigen::Isometry3f> vA, vB;
 
 	for (int i = 0; i < n; i++)
 	{
@@ -102,8 +102,8 @@ GeoTransform calibrateHandEye(std::vector<GeoTransform>& vH_robot, std::vector<G
 			//if(i == 0 && j==i+1) continue;
 			if (t == EyeToHand)
 			{
-				GeoTransform A = vH_robot[j] * vH_robot[i].inverse();
-				GeoTransform B = vH_mark[j] * vH_mark[i].inverse();			 
+				Eigen::Isometry3f A = vH_robot[j] * vH_robot[i].inverse();
+				Eigen::Isometry3f B = vH_mark[j] * vH_mark[i].inverse();			 
 
 				vA.push_back(A);
 				vB.push_back(B);
@@ -111,8 +111,8 @@ GeoTransform calibrateHandEye(std::vector<GeoTransform>& vH_robot, std::vector<G
 			else if (t == EyeInHand)
 			{
 
-				GeoTransform A = vH_robot[j].inverse() * vH_robot[i];
-				GeoTransform B = vH_mark[j] * vH_mark[i].inverse();
+				Eigen::Isometry3f A = vH_robot[j].inverse() * vH_robot[i];
+				Eigen::Isometry3f B = vH_mark[j] * vH_mark[i].inverse();
 
 				vA.push_back(A);
 				vB.push_back(B);
@@ -121,7 +121,7 @@ GeoTransform calibrateHandEye(std::vector<GeoTransform>& vH_robot, std::vector<G
 	}
 	
 
-	GeoTransform H = sovleAXequalXB(vA, vB);
+	Eigen::Isometry3f H = sovleAXequalXB(vA, vB);
 
  
 
@@ -153,9 +153,9 @@ Eigen::MatrixXf svdInverse(Eigen::MatrixXf  A)
 	return X;
 }
 
-GeoTransform sovleAXequalXB(std::vector<GeoTransform>& vA, std::vector<GeoTransform>& vB)
+Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector<Eigen::Isometry3f>& vB)
 {
-	GeoTransform H;
+	Eigen::Isometry3f H;
 	H.setIdentity();
 	if (vA.size() != vB.size())
 	{
@@ -165,8 +165,8 @@ GeoTransform sovleAXequalXB(std::vector<GeoTransform>& vA, std::vector<GeoTransf
 
 	const int n = vA.size();
 
-	RotMat R_a, R_b;
-	Geo3d r_a, r_b;
+	Eigen::Matrix3f R_a, R_b;
+	Eigen::Vector3f r_a, r_b;
 
 	Eigen::MatrixXf A(n*3, 3);
 	Eigen::MatrixXf b(n*3, 1);
@@ -178,8 +178,8 @@ GeoTransform sovleAXequalXB(std::vector<GeoTransform>& vA, std::vector<GeoTransf
 		R_a = vA[i].linear();
 		R_b = vB[i].linear();
 		
-		Geo3d rod_a = rodrigues2(R_a);
-		Geo3d rod_b = rodrigues2(R_b);
+		Eigen::Vector3f rod_a = rodrigues2(R_a);
+		Eigen::Vector3f rod_b = rodrigues2(R_b);
 
 		float theta_a = rod_a.norm();
 		float theta_b = rod_b.norm();
@@ -187,11 +187,11 @@ GeoTransform sovleAXequalXB(std::vector<GeoTransform>& vA, std::vector<GeoTransf
 		rod_a /= theta_a;
 		rod_b /= theta_b;
 
-		Geo3d P_a = 2*sin(theta_a/2)*rod_a;
-		Geo3d P_b = 2*sin(theta_b/2)*rod_b;		 
+		Eigen::Vector3f P_a = 2*sin(theta_a/2)*rod_a;
+		Eigen::Vector3f P_b = 2*sin(theta_b/2)*rod_b;		 
 
-		Eigen::Matrix3f rot = skew(Geo3d(P_b+P_a));
-		Geo3d v = P_b - P_a;
+		Eigen::Matrix3f rot = skew(Eigen::Vector3f(P_b+P_a));
+		Eigen::Vector3f v = P_b - P_a;
 		//for (int row = 3 * i; row < 3 * i + 3; ++row)
 		//{
 		//	for (int col = 0; col < 3; ++col)
@@ -213,14 +213,14 @@ GeoTransform sovleAXequalXB(std::vector<GeoTransform>& vA, std::vector<GeoTransf
 	Eigen::MatrixXf pinA = svdInverse(A); 
 
 	// 3 by 1 = 3 by 3*n multi 3*n by 1
-	Geo3d H_ba_prime = pinA * b;
+	Eigen::Vector3f H_ba_prime = pinA * b;
 	 
-	Geo3d H_ba = 2 * H_ba_prime / sqrt(1 + lxsq(H_ba_prime.norm()));
+	Eigen::Vector3f H_ba = 2 * H_ba_prime / sqrt(1 + lxsq(H_ba_prime.norm()));
 
 	// 1 by 3
 	Eigen::MatrixXf H_ba_Trs = H_ba.transpose();
 
-	RotMat R_ba = (1 - lxsq(H_ba.norm()) / 2) * RotMat::Identity() 
+	Eigen::Matrix3f R_ba = (1 - lxsq(H_ba.norm()) / 2) * Eigen::Matrix3f::Identity() 
 		+ 0.5 * (H_ba * H_ba_Trs + sqrt(4 - lxsq(H_ba.norm()))*skew(H_ba));
 	
 
@@ -228,8 +228,8 @@ GeoTransform sovleAXequalXB(std::vector<GeoTransform>& vA, std::vector<GeoTransf
 	b.setZero();
 	for (int i = 0; i < n; ++i)
 	{
-		RotMat AA = vA[i].linear() - RotMat::Identity();
-		Geo3d bb = R_ba * vB[i].translation() - vA[i].translation();
+		Eigen::Matrix3f AA = vA[i].linear() - Eigen::Matrix3f::Identity();
+		Eigen::Vector3f bb = R_ba * vB[i].translation() - vA[i].translation();
 		//for (int row = 3 * i; row < 3 * i + 3; ++row)
 		//{
 		//	for (int col = 0; col < 3; ++col)
@@ -243,7 +243,7 @@ GeoTransform sovleAXequalXB(std::vector<GeoTransform>& vA, std::vector<GeoTransf
 		b.middleRows(3 * i, 3) = bb;
 	}
 	pinA = svdInverse(A);
-	Geo3d t_ba = pinA * b;
+	Eigen::Vector3f t_ba = pinA * b;
 	H.linear() = R_ba;
 	H.translation() = t_ba;
 
@@ -253,8 +253,8 @@ GeoTransform sovleAXequalXB(std::vector<GeoTransform>& vA, std::vector<GeoTransf
 		// GeoTransform AX = vA[i] * H;
 		// GeoTransform XB = H * vB[i];
 
-		// Geo3d angles1 = AX.linear().eulerAngles(0, 1, 2);
-		// Geo3d angles2 = XB.linear().eulerAngles(0, 1, 2);
+		// Eigen::Vector3f angles1 = AX.linear().eulerAngles(0, 1, 2);
+		// Eigen::Vector3f angles2 = XB.linear().eulerAngles(0, 1, 2);
 		// cout << i << " Dist Error: " << (AX.translation() - XB.translation()).norm()
 		// 	<< ". Rotation Error: " << (angles1 - angles2).transpose() << endl;
 	}
