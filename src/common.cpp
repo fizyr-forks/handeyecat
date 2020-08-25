@@ -11,8 +11,7 @@
 
 #include <Eigen/SVD>
 
-#include <iostream>
-#include <fstream>
+#include <stdexcept>
 
 namespace lanXin {
 
@@ -76,12 +75,12 @@ Eigen::Isometry3f calibrateHandEye(
 	HandEyeType t
 ) {
 	const int n = std::min(vH_robot.size(), vH_mark.size());
-	if(n <3) {
-		printf("At lease 3 point-pairs.\n");
-		return Eigen::Isometry3f();
+	if (vH_robot.size() != vH_mark.size()) {
+		throw std::runtime_error("calibrateHandEye requires equal number of robot and mark poses, got " + std::to_string(vH_robot.size()) + " and " + std::to_string(vH_mark.size()));
 	}
-
-	printf("Start to calibrate with %d point-pairs.\n", n);
+	if (n < 3) {
+		throw std::runtime_error("calibrateHandEye requires at-least 3 point pars, got only " + std::to_string(n) + " pairs");
+	}
 
 	std::vector<Eigen::Isometry3f> vA, vB;
 
@@ -139,8 +138,7 @@ Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector
 	Eigen::Isometry3f H;
 	H.setIdentity();
 	if (vA.size() != vB.size()) {
-		printf("A and B must be same size.\n");
-		return H;
+		throw std::runtime_error("sovleAXequalXB requires input vectors to have the same size, got " + std::to_string(vA.size()) + " and " + std::to_string(vB.size()));
 	}
 
 	const int n = vA.size();
@@ -229,15 +227,6 @@ Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector
 		// cout << i << " Dist Error: " << (AX.translation() - XB.translation()).norm()
 		// 	<< ". Rotation Error: " << (angles1 - angles2).transpose() << endl;
 	}
-
-	std::string fname("H.txt");
-	printf("Calibration Finished. Saved at %s.\n", fname.c_str());
-
-	std::cout << "H: \n" << H.matrix() << "\n";
-	std::ofstream out(fname);
-	out <<"# Calibrated At " << fname  << "\n";
-	out << H.matrix() << "\n";
-	out.close();
 
 	return H;
 }
