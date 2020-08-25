@@ -1,11 +1,11 @@
-/*************************************** 
-* 
-* LanXin TECH, All Rights Reserverd. 
+/***************************************
+*
+* LanXin TECH, All Rights Reserverd.
 * Created at Thu May 16 10:27:58 2019
-* Contributor: Ling Shi, Ph.D 
-* Email: lshi@robvision.cn 
-* 
-***************************************/ 
+* Contributor: Ling Shi, Ph.D
+* Email: lshi@robvision.cn
+*
+***************************************/
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -94,5 +94,4 @@ Eigen::Isometry3f calibrateHandEye(std::vector<Eigen::Isometry3f>& vH_robot, std
 
 Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector<Eigen::Isometry3f>& vB);
 
-} /* End of namespace lanXin */ 
-
+} /* End of namespace lanXin */
