@@ -7,6 +7,9 @@
 *
 ***************************************/
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "common.h"
 
 #include <iostream>
@@ -16,7 +19,7 @@ int main() {
 
 	// camera in world, unknown, to calibrate
 	// transform camera to world, to estimate
-	Eigen::Isometry3f H_c_in_w = lanXin::getTransM(Eigen::Vector3f(0.8, 0.12, 2.4), Eigen::Vector3f(M_PI*1.02, -0.12*M_PI, M_PI *0.51));
+	Eigen::Isometry3f H_c_in_w = lanXin::getTransM(Eigen::Vector3f(0.8, 0.12, 2.4), Eigen::Vector3f(M_PI * 1.02, -0.12 * M_PI, M_PI * 0.51));
 
 	std::cout << "camera in world:\n" << H_c_in_w.matrix() << "\n";
 

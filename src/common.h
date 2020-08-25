@@ -68,4 +68,4 @@ Eigen::Isometry3f sovleAXequalXB(
 	std::vector<Eigen::Isometry3f> & vB
 );
 
-} /* End of namespace lanXin */
+}

@@ -82,7 +82,10 @@ Eigen::Isometry3f calibrateHandEye(
 		throw std::runtime_error("calibrateHandEye requires at-least 3 point pars, got only " + std::to_string(n) + " pairs");
 	}
 
-	std::vector<Eigen::Isometry3f> vA, vB;
+	std::vector<Eigen::Isometry3f> vA;
+	std::vector<Eigen::Isometry3f> vB;
+	vA.reserve(n);
+	vB.reserve(n);
 
 	for (int i = 0; i < n; i++) {
 		for (int j = i + 1; j < n; ++j) {
@@ -108,11 +111,10 @@ Eigen::Isometry3f calibrateHandEye(
 
 Eigen::MatrixXf svdInverse(Eigen::MatrixXf  A) {
 	Eigen::JacobiSVD<Eigen::MatrixXf> svd(A, Eigen::ComputeFullU | Eigen::ComputeFullV); // M = USV*
-	float  pinvtoler = 1.e-6; //tolerance
+	float pinvtoler = 1.e-6; //tolerance
 	int row = A.rows();
 	int col = A.cols();
 	int k = std::min(row, col);
-	Eigen::MatrixXf X = Eigen::MatrixXf::Zero(col, row);
 	Eigen::MatrixXf singularValues_inv = svd.singularValues(); //奇异值
 	Eigen::MatrixXf singularValues_inv_mat = Eigen::MatrixXf::Zero(col, row);
 
@@ -128,23 +130,18 @@ Eigen::MatrixXf svdInverse(Eigen::MatrixXf  A) {
 		singularValues_inv_mat(i, i) = singularValues_inv(i);
 	}
 
-	X = (svd.matrixV())*(singularValues_inv_mat)*(svd.matrixU().transpose()); //X=VS+U*
-
-	return X;
+	return svd.matrixV() * singularValues_inv_mat * svd.matrixU().transpose(); //X=VS+U*
 }
 
-Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector<Eigen::Isometry3f>& vB)
-{
-	Eigen::Isometry3f H;
-	H.setIdentity();
+Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector<Eigen::Isometry3f>& vB) {
 	if (vA.size() != vB.size()) {
 		throw std::runtime_error("sovleAXequalXB requires input vectors to have the same size, got " + std::to_string(vA.size()) + " and " + std::to_string(vB.size()));
 	}
 
 	const int n = vA.size();
 
-	Eigen::MatrixXf A = Eigen::MatrixXf::Zero(n*3, 3);
-	Eigen::MatrixXf b = Eigen::MatrixXf::Zero(n*3, 1);
+	Eigen::MatrixXf A = Eigen::MatrixXf::Zero(n * 3, 3);
+	Eigen::MatrixXf b = Eigen::MatrixXf::Zero(n * 3, 1);
 
 	for (int i = 0; i < n; ++i) {
 		Eigen::Matrix3f R_a = vA[i].linear();
@@ -159,27 +156,12 @@ Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector
 		rod_a /= theta_a;
 		rod_b /= theta_b;
 
-		Eigen::Vector3f P_a = 2*sin(theta_a/2)*rod_a;
-		Eigen::Vector3f P_b = 2*sin(theta_b/2)*rod_b;
+		Eigen::Vector3f P_a = 2 * sin(theta_a / 2) * rod_a;
+		Eigen::Vector3f P_b = 2 * sin(theta_b / 2) * rod_b;
 
-		Eigen::Matrix3f rot = skew(Eigen::Vector3f(P_b+P_a));
-		Eigen::Vector3f v = P_b - P_a;
-		//for (int row = 3 * i; row < 3 * i + 3; ++row)
-		//{
-		//	for (int col = 0; col < 3; ++col)
-		//	{
-		//		A(row, col) = rot(row - 3 * i, col);
-		//	}
-
-		//	b(row) = v(row - 3 * i);
-		//}
-
-		//cout << A.middleRows(3 * i, 3 * i + 3) << endl;
-		//cout << rot << endl;
-		A.middleRows(3 * i, 3) = rot;
-		b.middleRows(3*i, 3) = v;
+		A.middleRows(3 * i, 3) = skew(P_b + P_a);
+		b.middleRows(3 * i, 3) = P_b - P_a;
 	}
-	//Eigen::JacobiSVD<Eigen::MatrixXf> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
 
 	// 3 by 3*n
 	Eigen::MatrixXf pinA = svdInverse(A);
@@ -193,7 +175,7 @@ Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector
 	Eigen::MatrixXf H_ba_Trs = H_ba.transpose();
 
 	Eigen::Matrix3f R_ba = (1 - std::pow(H_ba.norm(), 2) / 2) * Eigen::Matrix3f::Identity()
-		+ 0.5 * (H_ba * H_ba_Trs + sqrt(4 - std::pow(H_ba.norm(), 2))*skew(H_ba));
+		+ 0.5 * (H_ba * H_ba_Trs + sqrt(4 - std::pow(H_ba.norm(), 2)) * skew(H_ba));
 
 	A.setZero();
 	b.setZero();
@@ -214,6 +196,8 @@ Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector
 	}
 	pinA = svdInverse(A);
 	Eigen::Vector3f t_ba = pinA * b;
+
+	Eigen::Isometry3f H = Eigen::Isometry3f::Identity();
 	H.linear() = R_ba;
 	H.translation() = t_ba;
 
@@ -231,4 +215,4 @@ Eigen::Isometry3f sovleAXequalXB(std::vector<Eigen::Isometry3f>& vA, std::vector
 	return H;
 }
 
-} /* End of namespace lanXin */
+}
